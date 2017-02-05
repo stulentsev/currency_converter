@@ -1,0 +1,1 @@
+CURRENCIES = [:usd, :eur, :rub]

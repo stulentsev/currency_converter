@@ -2,18 +2,10 @@ require 'minitest/autorun'
 require './converter'
 
 class ConverterTest < Minitest::Test
-  def test_simple_value_converter
-    assert_kind_of Currencyable, 1.usd
-    assert_kind_of Currencyable, 1.eur
-    assert_kind_of Currencyable, 1.rub
-    assert_kind_of Currencyable, 1.1.usd
-    assert_kind_of Currencyable, 1.2.eur
-    assert_kind_of Currencyable, 1.3.rub
-  end
-
-  def test_compound_value_type
-    assert_kind_of Currencyable, 1.usd + 2.usd
-    assert_kind_of Currencyable, 1.usd + 2.rub
+  def setup
+    ExchangeRate.add_rate(:eur, :usd, 1.08)
+    ExchangeRate.add_rate(:eur, :rub, 63.7)
+    ExchangeRate.add_rate(:usd, :rub, 59.0)
   end
 
   def test_same_currency_math
@@ -25,4 +17,23 @@ class ConverterTest < Minitest::Test
   def test_compound_currency_math
     assert_equal 3.usd + 2.eur, 1.5.usd + 0.5.usd + 1.3.eur + 1.usd + 0.7.eur
   end
+
+  def test_converter_method_existence
+    assert_respond_to 1.usd, :to_usd
+    assert_respond_to 1.usd, :to_eur
+    assert_respond_to 1.usd, :to_rub
+  end
+
+  def test_simple_conversion
+    assert_equal 100.eur.to_usd, 108.usd
+    assert_equal 100.eur.to_rub, 6370.rub
+
+    assert_equal 100.usd.to_rub, 5900.rub
+    assert_equal 100.usd.to_eur, 92.59.eur
+  end
+
+  def test_compound_conversion
+    assert_equal (100.eur + 100.usd).to_rub, 12270.rub
+  end
+
 end
