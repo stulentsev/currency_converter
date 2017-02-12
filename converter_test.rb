@@ -12,6 +12,9 @@ class ConverterTest < Minitest::Test
     assert_equal 1.usd + 2.usd, 3.usd
     assert_equal 3.eur + 4.eur, 7.eur
     assert_equal 1.5.rub + 2.rub, 3.5.rub
+
+    refute_equal 1.usd, 1.rub
+    refute_equal 1.usd, 63.7.rub # even though it's the same amount of money
   end
 
   def test_compound_currency_math
