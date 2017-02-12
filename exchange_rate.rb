@@ -8,6 +8,10 @@ class ExchangeRate
     rates[[cur_from, cur_to]] || fail("rate not found for #{cur_from}, #{cur_to}")
   end
 
+  def self.strategy
+    self # simple static data for now. In future, this can be settable strategy.
+  end
+
   private
 
   def self.rates

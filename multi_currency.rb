@@ -1,56 +1,52 @@
-require_relative 'currencyable.rb'
-
 class MultiCurrency
-  include Currencyable
-
   attr_reader :single_currencies
 
   def initialize(single_currencies)
     @single_currencies = single_currencies
   end
 
-  def compound?
-    true
-  end
-
-  def adding_will_convert_to_multi?(*)
-    true
-  end
-
   def ==(other)
-    return false unless other.is_a?(Currencyable)
+    return false unless other.is_a?(MultiCurrency)
 
-    to_currency_list == other.to_currency_list
+    single_currencies.sort == other.single_currencies.sort
   end
 
-  def to_currency_list
-    single_currencies.flat_map(&:to_currency_list)
+  def +(other)
+    fail ArgumentError unless other.is_a?(MultiCurrency)
+
+    increment_with(other)
   end
 
-  def increment_with(other)
-    other.to_currency_list.each do |num, cur|
-      single = single_currencies.detect { |sc| sc.currency == cur }
-      if single
-        single.number += num
-      else
-        single_currencies << SingleCurrency.new(num, cur)
+  # conversion methods
+  CURRENCIES.each do |target_currency|
+    define_method "to_#{target_currency}" do
+      resulting_number = single_currencies.reduce(0) do |conversion_result, sc|
+        n, c = sc.number, sc.currency
+        rate = ExchangeRate.strategy.fetch_rate(c, target_currency)
+        conversion_result + (n * rate).round(2)
       end
-    end
 
-    self
+      MultiCurrency.new([CurrencyUnit.new(resulting_number.round(2), target_currency)])
+    end
   end
 
   def inspect
     "(#{single_currencies.map(&:inspect).join(', ')})"
   end
 
-  def self.add_two(one, other)
-    if one.compound?
-      one.increment_with(other)
-    elsif other.compound?
-      other.increment_with(one)
-    else
-      new([one, other])
+  private
+
+  def increment_with(other)
+    other.single_currencies.each do |other_currency|
+      single = single_currencies.detect { |sc| sc.currency == other_currency.currency }
+      if single
+        single.number += other_currency.number
+      else
+        single_currencies << CurrencyUnit.new(other_currency.number, other_currency.currency)
+      end
     end
+
+    self
   end
+
 end
