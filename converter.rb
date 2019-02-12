@@ -12,10 +12,8 @@ module ConverterMethods
   end
 end
 
-if RUBY_VERSION >= '2.4'
-  Integer.include(ConverterMethods)
-else
-  Fixnum.include(ConverterMethods)
-  Bignum.include(ConverterMethods)
-end
+# handle Fixnum => Integer migration in ruby 2.4
+integer_class = 1.class
+integer_class.include(ConverterMethods)
+
 Float.include(ConverterMethods)
