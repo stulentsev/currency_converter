@@ -5,6 +5,7 @@ class ExchangeRate
   end
 
   def self.fetch_rate(cur_from, cur_to)
+    return 1 if cur_from == cur_to
     rates[[cur_from, cur_to]] || fail("rate not found for #{cur_from}, #{cur_to}")
   end
 
